@@ -69,3 +69,16 @@ ReactDOM.render(<App />, document.getElementById("root"));
 5. Now, webpack needs to know where to start and where to place our `bundle.js` file. Create `webpack.config.js` file on the root level.
 
 6. For more info on how to use webpack, refer the `https://webpack.js.org/` documentation.
+
+7. Copy the webpack.config.js file. It needs a dependency of babel-loader.
+
+8. You need to add babel-loader dependency but the latest one needs @babel-core dependency or something like that. Instead add babel-loader@7 using the command `yarn add babel-loader@7`
+
+9. Add the following script: `"webpack": "webpack -wd"` and run it
+
+10. Test the application to check if webpack has been configured correctly.
+
+Note: If you run `time yarn webpack` to measure how much time it takes for webpack to create your build without the excludes node modules regex, you will notice that it's pretty slow. This is because our webpack.config.js (in its rules section) asks webpack to build everything that ends with `.js` and this includes everything from node modules as well.
+So, don't forget to add the excludes node_modules part.
+
+Also note that, we need to add babel-polyfill in entry along with adding it as a dependency `yarn add babel-polyfill` because without this configuration, async await functions dont work and they throw a regenerator run time error

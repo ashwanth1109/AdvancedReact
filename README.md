@@ -91,3 +91,12 @@ Also note that, we need to add babel-polyfill in entry along with adding it as a
    Arrays are easier to work with when we list records, but when we need to find elements in a collection, arrays are not the best structure. Objects are much better in these scenarios
 4. So we want to have a data transform layer between the API and the React Application to convert the articles and authors array into objects.
 5. One complexity that we will be working with in the React side of things will be to map authors to articles based on the relational id provided in the data structure.
+
+### Testing with JEST
+
+Jest is a one-stop testing framework which comes with expectation syntax, mocks, and a powerful runner.
+
+1. To add Jest as a dependency, `yarn add --dev jest`
+2. Add a test script to `package.json`: `"test": "jest --watch"`
+3. Start the runner with `yarn test`
+4. Make sure that your eslint file has jest set to true in env

@@ -1,4 +1,4 @@
-# Advanced React
+# Advanced React Notes
 
 ### Starting From Scratch (Not using create-react-app)
 
@@ -82,3 +82,12 @@ Note: If you run `time yarn webpack` to measure how much time it takes for webpa
 So, don't forget to add the excludes node_modules part.
 
 Also note that, we need to add babel-polyfill in entry along with adding it as a dependency `yarn add babel-polyfill` because without this configuration, async await functions dont work and they throw a regenerator run time error
+
+### Working with Data
+
+1. Get wget (if you don't have it) using `brew install wget`
+2. Use `wget -O` to get some test data from some API
+3. Note that our test data has authors and articles stored as arrays.
+   Arrays are easier to work with when we list records, but when we need to find elements in a collection, arrays are not the best structure. Objects are much better in these scenarios
+4. So we want to have a data transform layer between the API and the React Application to convert the articles and authors array into objects.
+5. One complexity that we will be working with in the React side of things will be to map authors to articles based on the relational id provided in the data structure.

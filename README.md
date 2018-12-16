@@ -41,3 +41,31 @@ So we need the server side to understand the jsx syntax along with ES6 stuff.
 3. Change config of pm2 to tell it to use babel node instead of regular node. Just add `--interpreter babel-node` option to dev script.
 4. Add preset dependencies: `yarn add babel-preset-react babel-preset-env babel-preset-stage-2`
 5. You can now use ES6 server side. Yay!
+
+### Creating your first server side component in React (using Webpack)
+
+1. Create a basic component inside `lib/components/Index.js` file
+
+```javascript
+import React from "react";
+import ReactDOM from "react-dom";
+
+const App = () => <h2>Hello React</h2>;
+
+ReactDOM.render(<App />, document.getElementById("root"));
+```
+
+2. Add the root div to `index.ejs` along with a script to load the react file
+
+```html
+<div id="root">Loading. . .</div>
+<script src="bundle.js"></script>
+```
+
+3. We use `bundle.js` here since its a better option to use one bundled script than many individual ones (using webpack of course)
+
+4. Bring in the dependencies: `yarn add react react-dom webpack`
+
+5. Now, webpack needs to know where to start and where to place our `bundle.js` file. Create `webpack.config.js` file on the root level.
+
+6. For more info on how to use webpack, refer the `https://webpack.js.org/` documentation.

@@ -343,3 +343,37 @@ export default Article;
 ```
 
 Given that Article and ArticleList are dumb presentational components, we obviously choose to render them as stateless components.
+
+### Styling the Article component using React's Javascript API for inline styles
+
+```javascript
+//===========================================
+// javascript api for css styles in react using the style attribute on divs
+//===========================================
+const s = {
+    article: {
+        paddingBottom: 10,
+        borderBottomStyle: "solid",
+        borderBottomColor: "#aaa",
+        borderBottomWidth: 1,
+        marginBottom: 10
+    },
+    title: {
+        fontWeight: "bold"
+    },
+    date: {
+        fontSize: "0.85em",
+        color: "#888"
+    },
+    author: {
+        paddingTop: 10,
+        paddingBottom: 10
+    },
+    body: {
+        paddingLeft: 20
+    }
+};
+```
+
+It is important to note that we declare the styles as a global object and not inside the class component, because it would then create the style object multiple times for every re-render.
+In the final stage of production, one optimization could be to put it into its own module for storing all the styles in one place.

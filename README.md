@@ -267,3 +267,79 @@ describe("DataApi", () => {
 ```
 
 ### Creating the front end for the data
+
+In our App.js, we get the API data and after parsing it using our DataApi class,
+we store it in state and render it using the ArticleList component -
+
+```javascript
+import React, { Component } from "react";
+import ArticleList from "./ArticleList";
+
+import DataApi from "../DataApi";
+import { data } from "../testData";
+const api = new DataApi(data);
+
+class App extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            articles: api.getArticles(),
+            authors: api.getAuthors()
+        };
+    }
+    render() {
+        const { articles, authors } = this.state;
+        return <ArticleList articles={articles} authors={authors} />;
+    }
+}
+
+export default App;
+```
+
+Our ArticleList component iterates through the articles array and renders each Article using the Article component -
+
+```javascript
+import React from "react";
+import Article from "./Article";
+
+const ArticleList = ({ articles, authors }) => {
+    return (
+        <div>
+            {Object.values(articles).map(article => (
+                <Article
+                    key={article.id}
+                    article={article}
+                    author={authors[article.authorId]}
+                />
+            ))}
+        </div>
+    );
+};
+
+export default ArticleList;
+```
+
+Our Article component renders the details of the Article such as title, date and body along with the author information such as firstName, lastName and website.
+
+```javascript
+import React from "react";
+
+const Article = ({ article, author }) => {
+    return (
+        <div>
+            <div>{article.title}</div>
+            <div>{article.date}</div>
+            <div>
+                <a href={author.website}>
+                    {author.firstName} {author.lastName}
+                </a>
+            </div>
+            <div>{article.body}</div>
+        </div>
+    );
+};
+
+export default Article;
+```
+
+Given that Article and ArticleList are dumb presentational components, we obviously choose to render them as stateless components.

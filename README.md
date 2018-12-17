@@ -377,3 +377,16 @@ const s = {
 
 It is important to note that we declare the styles as a global object and not inside the class component, because it would then create the style object multiple times for every re-render.
 In the final stage of production, one optimization could be to put it into its own module for storing all the styles in one place.
+
+### Working with Dates
+
+In this scenario instead of displaying the timestamp, we want a readable string for date.
+So, we can create a function by working with Javascript's date objects -
+
+```javascript
+const dateDisplay = dateString => new Date(dateString).toDateString();
+```
+
+Note that since this function has nothing specific to the Article component, it is better to place it as a global function since we dont want React to create this function for every render.
+
+Note that, if you NEED to create a function inside a stateless component (for example, if it needs to use props), it is a better idea to create one using class (making it a stateful component) or see if you can make it work by passing it in as a parameter while keeping the function in global scope.

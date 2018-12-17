@@ -390,3 +390,87 @@ const dateDisplay = dateString => new Date(dateString).toDateString();
 Note that since this function has nothing specific to the Article component, it is better to place it as a global function since we dont want React to create this function for every render.
 
 Note that, if you NEED to create a function inside a stateless component (for example, if it needs to use props), it is a better idea to create one using class (making it a stateful component) or see if you can make it work by passing it in as a parameter while keeping the function in global scope.
+
+### Thinking about Component Responsibilities
+
+The ArticleList component is smarter than it needs to be.
+
+```javascript
+const ArticleList = ({ articles, authors }) => {
+    return (
+        <div>
+            {Object.values(articles).map(article => (
+                <Article
+                    key={article.id}
+                    article={article}
+                    author={authors[article.authorId]}
+                />
+            ))}
+        </div>
+    );
+};
+```
+
+It has information about authors which it then passes down to the Article component. The problem with this approach is that by creating this dependency, if we have to change something about the information being passed down, we would have to unnecessarily make changes at the ArticleList level as well. Instead, it is better to manage this action of looking up authors in the higher level (in this case, App component). Generally, we should keep children component less smart by making them purely presentational components, and have parent components smarter (control logic of things) and manage the state of the application.
+
+```javascript
+// App
+class App extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            articles: api.getArticles(),
+            authors: api.getAuthors()
+        };
+    }
+
+    articleActions = {
+        // we create an article actions object
+        lookupAuthor: authorId => this.state.authors[authorId] // it has a lookup function that we pass down to ArticleList
+    };
+
+    render() {
+        const { articles } = this.state;
+        return (
+            <ArticleList
+                articles={articles}
+                articleActions={this.articleActions}
+            />
+        );
+    }
+}
+
+// ArticleList
+const ArticleList = ({ articles, articleActions }) => {
+    return (
+        <div>
+            {Object.values(articles).map(article => (
+                <Article
+                    key={article.id}
+                    article={article}
+                    actions={articleActions} // Article is not aware of what articleActions are doing
+                />
+            ))}
+        </div>
+    );
+};
+
+// Article
+const Article = ({ article, actions }) => {
+    const author = actions.lookupAuthor(article.authorId); // lookup author using the passed down action
+    return (
+        <div style={s.article}>
+            <div style={s.title}>{article.title}</div>
+            <div style={s.date}>{dateDisplay(article.date)}</div>
+            <div style={s.author}>
+                <a href={author.website}>
+                    {author.firstName} {author.lastName}
+                </a>
+            </div>
+            <div style={s.body}>{article.body}</div>
+        </div>
+    );
+};
+```
+
+We have made the above changes to our components because, the Article component is the one that has the authorId information needed to look up the Author and the App component is the one that has information to look up the author based on an authorId. So, by passing the lookupAuthor function from App to Article, we remove the dependency of ArticleList in terms of having any author information and it doesnt have to care about what's inside articleActions.

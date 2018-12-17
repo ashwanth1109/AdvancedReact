@@ -42,6 +42,48 @@ So we need the server side to understand the jsx syntax along with ES6 stuff.
 4. Add preset dependencies: `yarn add babel-preset-react babel-preset-env babel-preset-stage-2`
 5. You can now use ES6 server side. Yay!
 
+### Creating a basic express server app
+
+```javascript
+//===========================================
+// import dependencies
+//===========================================
+import express from "express";
+import config from "./config";
+
+//===========================================
+// bring in application
+//===========================================
+const app = express();
+
+//===========================================
+// have express statically serve up the public directory
+//===========================================
+app.use(express.static("public"));
+
+//===========================================
+// create index route at /
+// pass in a 'test' variable: "Hello world"
+//===========================================
+app.get("/", (req, res) => {
+    res.render("index", {
+        test: "Hello world"
+    });
+});
+
+//===========================================
+// configure express to use ejs as the templating language
+//===========================================
+app.set("view engine", "ejs");
+
+//===========================================
+// set up the app to listen on config.port
+//===========================================
+app.listen(config.port, () =>
+    console.info(`Listening on PORT ${config.port}. . .`)
+);
+```
+
 ### Creating your first server side component in React (using Webpack)
 
 1. Create a basic component inside `lib/components/Index.js` file
@@ -99,4 +141,57 @@ Jest is a one-stop testing framework which comes with expectation syntax, mocks,
 1. To add Jest as a dependency, `yarn add --dev jest`
 2. Add a test script to `package.json`: `"test": "jest --watch"`
 3. Start the runner with `yarn test`
-4. Make sure that your eslint file has jest set to true in env
+4. Make sure that your eslint file has jest set to true in env, so that eslint does not throw errors for jest.
+5. Create your tests inside the lib folder in a folder called `__tests__`
+6. We write a data api interface `DataApi.js` to map the received data to objects. The DataApi class internally handles the conversion of data from arrays int objects.
+
+```javascript
+//===========================================
+// here, we will design our data api interface
+//===========================================
+class DataApi {
+    constructor(rawData) {
+        this.rawData = rawData;
+    }
+    mapIntoObject = arr => {
+        return arr.reduce((acc, curr) => {
+            acc[curr.id] = curr;
+            return acc;
+        }, {});
+    };
+    getArticles = () => {
+        return this.mapIntoObject(this.rawData.articles);
+    };
+
+    getAuthors = () => {
+        return this.mapIntoObject(this.rawData.authors);
+    };
+}
+export default DataApi;
+```
+
+7. Next we have to write our tests in jest which checks if the api is in fact sending us our data as objects. We describe two tests for DataApi as follows. . .
+
+```javascript
+import DataApi from "../DataApi";
+import { data } from "../testData.json";
+const api = new DataApi(data);
+
+describe("DataApi", () => {
+    it("exposes articles as an object", () => {
+        const articles = api.getArticles();
+        const articleId = data.articles[0].id;
+        const articleTitle = data.articles[0].title;
+        expect(articles).toHaveProperty(articleId);
+        expect(articles[articleId].title).toBe(articleTitle);
+    });
+
+    it("exposes authors as an object", () => {
+        const authors = api.getAuthors();
+        const authorId = data.authors[0].id;
+        const authorFirstName = data.authors[0].firstName;
+        expect(authors).toHaveProperty(authorId);
+        expect(authors[authorId].firstName).toBe(authorFirstName);
+    });
+});
+```

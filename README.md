@@ -84,7 +84,7 @@ app.listen(config.port, () =>
 );
 ```
 
-### Creating your first server side component in React (using Webpack)
+### Creating a basic server side component in React (Getting started with Isomorphic React, I guess)
 
 1. Create a basic component inside `lib/components/Index.js` file
 
@@ -265,3 +265,5 @@ describe("DataApi", () => {
     });
 });
 ```
+
+### Creating the front end for the data

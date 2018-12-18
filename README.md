@@ -619,3 +619,30 @@ module.exports = {
     }
 };
 ```
+
+### Publishing your own npm packages - Whoa!!
+
+There is also another advantage to adding NODE_PATH to `package.json` and path.resolve changes to `webpack.config.js`. It makes developing your own npm packages locally a lot easier.
+
+1. Create your package's own git directory.
+2. In this case, we just do it inside this project with the DataApi package.
+3. `mkdir state-api` inside the lib folder
+4. Move the `DataApi.js` file into `state-api/lib` and rename it to `index.js`
+5. To make this state-api into its own package, we run `yarn init` inside the state-api folder.
+6. Set entry point to `lib/index.js`.
+7. Now, the plan is to eventually publish this package when its ready. In production, the state-api will be from this published package.
+8. While using this package in development mode, keeping in mind that when you go into production you will not have the state-api directory, we opt to use it as a published package.
+9. Just replace your import statements into using published package:
+
+```js
+import DataApi from "state-api";
+```
+
+This will work locally because of our NODE_PATH and webpack settings as mentioned.
+In production, it will work by reading state-api from node_modules when we install state-api as a dependency.
+
+The advantage here is clearly that, you can grow your project both locally as well as in production.
+
+10. Once we have our package ready, we publish it to npm and we push our local project to deploy without using the local state api code and things will just work because its a normal import statement that will read from node_modules.
+
+11. However, remember that before you publish the package, you have to transpile it using Babel, as its a bad idea to publish an npm package that uses features that are not yet in node.

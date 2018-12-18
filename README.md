@@ -566,3 +566,13 @@ export default serverRender;
 ```
 
 Note: Now, if you check the rendering of the application without javascript, you will be able to see the entire application being rendered from server-side.
+
+### Understanding the performance improvement of Isomorphic Applications
+
+1. Change app back to initial way of rendering (only client side) with only the Loading text showing up from server.
+2. In chrome, we have to simulate a slow CPU.
+3. `Disable cache` in network tab.
+4. In the performance tab, click on settings, choose CPU throttling as 20x slowdown.
+5. Monitor network tab
+6. On refreshing this page, we can see how the CPU takes a while to render the content and only the Loading... message is shown during that load time.
+7. If instead, you ship the initial HTML as a string, and refresh the page, you will see the content render from the server, even when the webpage is still loading to run client side scripts. (# mind === blown #)

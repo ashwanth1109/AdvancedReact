@@ -530,6 +530,10 @@ describe("ArticleList", () => {
 
 ### Server Side Rendering of the React Application
 
+Side note: https://stackoverflow.com/questions/46516395/whats-the-difference-between-hydrate-and-render-in-react-16
+Apparently, hydrate is the more performant variant for render. Read docs.
+https://reactjs.org/docs/react-dom.html#hydrate
+
 Note that if javascript is disabled on the browser (`Settings => Preferences => Debugger => Disable Javascript` ), our application will only render the `Loading . . .` part from the index ejs file. Search engines when indexing this application can only see this portion of our application. To fix this problem, by rendering the exact same react application on the server as well. By doing this -
 
 (1) we get search engine optimization
@@ -602,7 +606,10 @@ REFACTORING CODE -
 You can choose to go with absolute require rather than relative require.
 To do this, indicate, the NODE_PATH=./lib for indicating absolute requires that start with lib folder.
 `"dev": "NODE_PATH=./lib pm2 start lib/server.js --watch --interpreter babel-node"`
-For absolute requires to work for webpack, add the following piece of code to webpack.config.js
+For absolute requires to work for webpack, add the following piece of code to webpack.config.js.
+
+Once this is done, you can check the status of the pm2 process using `yarn pm2 list`
+You will have to delete this process using `yarn pm2 delete server` and then start a new process using the now modified dev script - `yarn dev`
 
 ```js
 module.exports = {
@@ -646,3 +653,58 @@ The advantage here is clearly that, you can grow your project both locally as we
 10. Once we have our package ready, we publish it to npm and we push our local project to deploy without using the local state api code and things will just work because its a normal import statement that will read from node_modules.
 
 11. However, remember that before you publish the package, you have to transpile it using Babel, as its a bad idea to publish an npm package that uses features that are not yet in node.
+
+### Asynchronous API on the client side
+
+So far, we have worked with in-memory test data. Obviously, we have to shift that into making API calls in the component.
+
+1. Import your test data into `server.js` and create a get route at the `/data` endpoint
+
+```js
+// import test data
+import { data } from "./testData";
+//
+// Expose our test data using /data api route
+app.get("/data", (req, res) => {
+    res.send(data);
+});
+```
+
+2. On the client side, we need an ajax library to fetch the data. In this case we are going to use axios.
+   `yarn add axios`
+
+3. We can't read the data in the constructor now as we did before bcuz the data is now asynchronous. So we remove the constructor.
+
+```js
+constructor(props) { // cant read api data in constructor anymore
+    super(props);
+    this.state = {
+        articles: api.getArticles(),
+        authors: api.getAuthors()
+    };
+}
+```
+
+4. We initialize a state object so that the React frontend doesnt throw an undefined error. Then we use async-await on the componentDidMount() lifecycle method to fetch data using axios.
+
+```js
+state = {
+    articles: {},
+    authors: {}
+};
+
+async componentDidMount() {
+    const response = await axios.get('/data');
+    const api = new DataApi(response.data);
+    this.setState({
+        articles: api.getArticles(),
+        authors: api.getAuthors()
+    });
+}
+```
+
+5. Note here that if you `Disable javascript` from the chrome options, we see that the server side rendered component does not fetch the data.
+
+    This is because the componentDidMount() lifecycle method does not run on the server side.
+    Side note: Do not use componentWillMount() or constructor for fetching data even though they do it pre-render.
+    More info here: https://github.com/facebook/react/is

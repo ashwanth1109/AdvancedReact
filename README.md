@@ -708,3 +708,39 @@ async componentDidMount() {
     This is because the componentDidMount() lifecycle method does not run on the server side.
     Side note: Do not use componentWillMount() or constructor for fetching data even though they do it pre-render.
     More info here: https://github.com/facebook/react/issues/12495
+
+### Asynchronous API on the server side
+
+1. Import in axios
+
+```js
+import axios from "axios"; // we use axios for server side as well
+```
+
+2. We then need to make the initial state of the app server side friendly so that the fetched data can be passed in from the `server.js` renderer into the App component using props.
+
+```js
+state = {
+    articles: this.props.articles,
+    authors: this.props.authors
+};
+```
+
+3. But this breaks the client side code because the props are not being passed in from the client side app renderer `dom.js`. So make sure we are passing in these props from both client side and server side.
+
+Server Side - `server.js`
+
+```js
+const serverRender = () => {
+    return ReactDOMServer.renderToString(<App articles={{}} authors={{}} />);
+};
+```
+
+Client Side - `dom.js`
+
+```js
+ReactDOM.render(
+    <App articles={{}} authors={{}} />,
+    document.getElementById("root")
+);
+```

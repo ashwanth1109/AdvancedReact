@@ -474,3 +474,13 @@ const Article = ({ article, actions }) => {
 ```
 
 We have made the above changes to our components because, the Article component is the one that has the authorId information needed to look up the Author and the App component is the one that has information to look up the author based on an authorId. So, by passing the lookupAuthor function from App to Article, we remove the dependency of ArticleList in terms of having any author information and it doesnt have to care about what's inside articleActions.
+
+### JEST Snapshot Testing
+
+There are two major types of tests that we do with JEST -
+
+(1) normal tests that test logic in code (2) Jest snapshot testing
+
+1. Add a `__tests__` folder inside your components folder.
+2. In order to start testing a component, we have to understand the dependencies of the component.
+3. For these sort of tests, we will use a package called react-test-renderer - `yarn add --dev react-test-renderer`

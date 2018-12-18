@@ -707,4 +707,4 @@ async componentDidMount() {
 
     This is because the componentDidMount() lifecycle method does not run on the server side.
     Side note: Do not use componentWillMount() or constructor for fetching data even though they do it pre-render.
-    More info here: https://github.com/facebook/react/is
+    More info here: https://github.com/facebook/react/issues/12495

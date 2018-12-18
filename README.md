@@ -481,6 +481,47 @@ There are two major types of tests that we do with JEST -
 
 (1) normal tests that test logic in code (2) Jest snapshot testing
 
+For snapshot testing,
+
 1. Add a `__tests__` folder inside your components folder.
 2. In order to start testing a component, we have to understand the dependencies of the component.
-3. For these sort of tests, we will use a package called react-test-renderer - `yarn add --dev react-test-renderer`
+3. For this sort of tests, we will use a package called react-test-renderer - `yarn add --dev react-test-renderer`
+4. Then we write a test for the component - in this case, for the ArticleList component.
+5. Our ArticleList has the following dependencies. It expects an array of articles, and inside each article, it expects an article id, and an articleActions object.
+6. We have to fake this dependency so that we can smoke test this component.
+7. So, create an `ArticleListTest.js` inside the `__tests__` folder inside components.
+8. Here, we also need the `react-test-renderer` library. This is the library we use to create the React components snapshots.
+9. For this, we describe the ArticleList component and we want to make sure that it renders correctly by creating a testProps object and passing it into the ArticleList component.
+10. We then pass in this component into the renderer which gives us a ReactTestInstance.
+11. The ReactTestInstance has more info than we need, so we gonna cut it down using `toJSON()` method.
+12. `toJSON()` will give you the actual object representation of the component in the form of a tree.
+13. Now we can write our expectations and test to see if anything has changed in comparison to previous snapshots.
+
+```javascript
+import React from "react";
+import ArticleList from "../ArticleList"; // this is component that we're testing
+
+import renderer from "react-test-renderer";
+
+describe("ArticleList", () => {
+    const testProps = {
+        articles: {
+            a: { id: "a" },
+            b: { id: "b" }
+        },
+        articleActions: {
+            lookupAuthor: jest.fn(() => ({}))
+        }
+    };
+
+    it("renders correctly", () => {
+        const tree = renderer.create(<ArticleList {...testProps} />).toJSON();
+
+        expect(tree.children.length).toBe(2);
+        //===========================================
+        // snapshot expectations
+        //===========================================
+        expect(tree).toMatchSnapshot();
+    });
+});
+```

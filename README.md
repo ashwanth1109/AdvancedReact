@@ -575,4 +575,47 @@ Note: Now, if you check the rendering of the application without javascript, you
 4. In the performance tab, click on settings, choose CPU throttling as 20x slowdown.
 5. Monitor network tab
 6. On refreshing this page, we can see how the CPU takes a while to render the content and only the Loading... message is shown during that load time.
-7. If instead, you ship the initial HTML as a string, and refresh the page, you will see the content render from the server, even when the webpage is still loading to run client side scripts. (# mind === blown #)
+7. If instead, you ship the initial HTML as a string, and refresh the page, you will see the content render from the server, even when the webpage is still loading to run client side scripts.
+
+(# mind === blown #)
+
+### Refactoring - Red, Green states of code
+
+A green state is when your code works and tests pass (although we dont have great test coverage yet).
+Factors that indicate a green state are -
+
+1. The application rendering correctly in the browser without any console errors.
+2. Webpack is rendering correctly.
+3. pm2 watch logs are not throwing any errors
+4. App passes all the JEST tests
+
+Red state is when you have failing tests in any of these cases.
+
+CRITICAL RULE: Only refactor when your code is in the green state (as obvious as this seems, its crucial to remind yourself of this stuff)
+
+REFACTORING CODE -
+
+1. Move `Index.js` and `serverRender.js` into their own folder called `renderers`
+2. Rename these files to `dom.js` and `server.js` respectively.
+3. Account for this move and rename in webpack.config.js and server.js
+
+You can choose to go with absolute require rather than relative require.
+To do this, indicate, the NODE_PATH=./lib for indicating absolute requires that start with lib folder.
+`"dev": "NODE_PATH=./lib pm2 start lib/server.js --watch --interpreter babel-node"`
+For absolute requires to work for webpack, add the following piece of code to webpack.config.js
+
+```js
+module.exports = {
+    resolve: {
+        modules: [path.resolve("./lib"), path.resolve("./node_modules")]
+    },
+    entry: ["babel-polyfill", "./lib/renderers/dom.js"],
+    output: {
+        path: path.resolve(__dirname, "public"),
+        filename: "bundle.js"
+    },
+    module: {
+        rules: [{ test: /\.js$/, exclude: /node_modules/, use: "babel-loader" }]
+    }
+};
+```

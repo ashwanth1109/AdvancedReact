@@ -1,4 +1,6 @@
-# Advanced React Notes
+# Advanced React Notes (Fullstack Applications with Isomorphic React)
+
+My notes on Samer Buna's `Advanced React.js` course on Pluralsight
 
 ### Starting From Scratch (Not using create-react-app)
 
@@ -84,7 +86,7 @@ app.listen(config.port, () =>
 );
 ```
 
-### Creating a basic server side component in React (Getting started with Isomorphic React, I guess)
+### Creating a basic server side component in React
 
 1. Create a basic component inside `lib/components/Index.js` file
 
@@ -495,7 +497,7 @@ For snapshot testing,
 10. We then pass in this component into the renderer which gives us a ReactTestInstance.
 11. The ReactTestInstance has more info than we need, so we gonna cut it down using `toJSON()` method.
 12. `toJSON()` will give you the actual object representation of the component in the form of a tree.
-13. Now we can write our expectations and test to see if anything has changed in comparison to previous snapshots.
+13. Now we can write our expectations and test to see if anything has changed in comparison to previous snapshot (created the first time you run it).
 
 ```javascript
 import React from "react";
@@ -525,3 +527,42 @@ describe("ArticleList", () => {
     });
 });
 ```
+
+### Server Side Rendering of the React Application
+
+Note that if javascript is disabled on the browser (`Settings => Preferences => Debugger => Disable Javascript` ), our application will only render the `Loading . . .` part from the index ejs file. Search engines when indexing this application can only see this portion of our application. To fix this problem, by rendering the exact same react application on the server as well. By doing this -
+
+(1) we get search engine optimization
+(2) we get a performance benefit because when we are mounting React on the client side, the browser will already have a copy of the application, and can just use those components as is.
+
+For the current state of the app, server rendering is less complicated since we don't have any async data yet.
+
+1. In `index.ejs`, instead of rendering our `Loading . . .` text, we will insert an HTML string that will contain the React rendering of the application - `<div id="root"><%- initialContent -%></div>`
+   Note - Make sure that there are no spaces between the root div tags and the `initialContent` variable. This is because when rendering the application on the client side, React computes the differences between the DOM and the virtual DOM before making the necessary updates. And this is space sensitive.
+2. In `server.js`, we pass in our initialContent variable which gets the HTML string from another file using a function, which we will call `serverRender()` below. Dont forget to import this function from the file.
+
+```javascript
+app.get("/", (req, res) => {
+    const initialContent = serverRender();
+    res.render("index", {
+        initialContent
+    });
+});
+```
+
+3. We can render our Application as a string using the following `serverRender()` function.
+
+```javascript
+import React from "react";
+import ReactDOMServer from "react-dom/server"; // This lets you render a React application into a string
+
+import App from "./components/App";
+
+const serverRender = () => {
+    return ReactDOMServer.renderToString(<App />);
+};
+
+export default serverRender;
+```
+
+Note: Now, if you check the rendering of the application without javascript, you will be able to see the entire application being rendered from server-side.

@@ -1211,3 +1211,47 @@ describe("ArticleList", () => {
     });
 });
 ```
+
+### Presentational Components and Container Components
+
+The Article Component now uses the context object to access the store. Introducing the global context object makes testing components harder. So, test this Article component, we have to fake a context object and we can't even shallow render the component without that. So we have another approach to this.
+
+We can split the Article component into two - one component responsible for extracting the store out of the context API and another one repsonsible for rendering an article object. The component used for doing anything other than rendering UI is called a container component. Components used for rendering UI are called Presentational components.
+
+We split the Article component into Article and ArticleContainer. The ArticleContainer gets the props and store from context and it passes in the props as is, into the Article component, in addition to extracting what we need from the store and passing those in as props as well.
+
+```js
+const Article = ({ article, store }) => {
+    const author = store.lookupAuthor(article.authorId);
+    return (
+        <div style={s.article}>
+            <div style={s.title}>{article.title}</div>
+            <div style={s.date}>{dateDisplay(article.date)}</div>
+            <div style={s.author}>
+                <a href={author.website}>
+                    {author.firstName} {author.lastName}
+                </a>
+            </div>
+            <div style={s.body}>{article.body}</div>
+        </div>
+    );
+};
+
+Article.propTypes = {
+    article: PropTypes.shape({
+        title: PropTypes.string.isRequired,
+        date: PropTypes.string.isRequired,
+        body: PropTypes.string.isRequired
+    })
+};
+
+const ArticleContainer = (props, { store }) => {
+    return <Article {...props} store={store} />;
+};
+
+ArticleContainer.contextTypes = {
+    store: PropTypes.object
+};
+
+export default ArticleContainer;
+```

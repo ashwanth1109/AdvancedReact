@@ -1001,3 +1001,48 @@ const Article = ({ article, store }) => {
     );
 };
 ```
+
+### Updating our tests for the new state api
+
+1. First test that we will update is the snapshot test inside the components folder in the `ArticleListTest.js` file. Just update your snapshot test to have store in testProps instead of articleActions
+
+```js
+const testProps = {
+    articles: {
+        a: { id: "a" },
+        b: { id: "b" }
+    },
+    store: {
+        lookupAuthor: jest.fn(() => ({}))
+    }
+};
+```
+
+2. Next, we want to update our DataApi tests for reading the new StateApi class and getting state for articles and authors.
+
+```js
+import StateApi from "state-api";
+import { data } from "../testData.json";
+
+const store = new StateApi(data);
+
+describe("DataApi", () => {
+    it("exposes articles as an object", () => {
+        const articles = store.getState().articles;
+        const articleId = data.articles[0].id;
+        const articleTitle = data.articles[0].title;
+
+        expect(articles).toHaveProperty(articleId);
+        expect(articles[articleId].title).toBe(articleTitle);
+    });
+
+    it("exposes authors as an object", () => {
+        const authors = store.getState().authors;
+        const authorId = data.authors[0].id;
+        const authorFirstName = data.authors[0].firstName;
+
+        expect(authors).toHaveProperty(authorId);
+        expect(authors[authorId].firstName).toBe(authorFirstName);
+    });
+});
+```

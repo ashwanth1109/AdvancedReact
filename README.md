@@ -739,8 +739,50 @@ const serverRender = () => {
 Client Side - `dom.js`
 
 ```js
+// On client side, we are passing in empty objects as props in the App component
 ReactDOM.render(
     <App articles={{}} authors={{}} />,
     document.getElementById("root")
 );
 ```
+
+4. Now, we need to fetch the data on the server side using axios. Remember to make the serverRender an async function because we await the response from the get request.
+
+```js
+import { port, host } from "config"; // importing from config (using an absolute path from lib)
+import DataApi from "state-api"; // importing from state-api package
+
+const serverRender = async () => {
+    const res = await axios.get(`http://${host}:${port}/data`);
+    const api = new DataApi(res.data);
+
+    return ReactDOMServer.renderToString(
+        <App articles={api.getArticles()} authors={api.getAuthors()} />
+    );
+};
+```
+
+Note that we can't use `/data` on the server side like we did for the `axios.get('/data')` on the client side. It instead needs to be a `http://${host}:${port}/data` where the host and port are configurable. Our config file now looks like this -
+
+```js
+module.exports = {
+    port: process.env.PORT || 3000,
+    host: process.env.HOST || "localhost"
+};
+```
+
+5. Since the `serverRender()` function is now asynchronous, we have to deal with this in the `server.js` side as well. Modify our get route in the server so that it awaits the serverRender to fetch data and then give us the string format of the HTML. Note that the req, res callback needs to be declared as async.
+
+```js
+//===========================================
+// create index route at /
+//===========================================
+app.get("/", async (req, res) => {
+    const initialContent = await serverRender();
+    res.render("index", {
+        initialContent
+    });
+});
+```
+
+6. Now, the application should render the data after fetching from the server side. You should see it even with the `Disable javascript` option on chrome. Note that, if you do have javascript enabled then chrome throws an error. This is because, the initial state on the client side is still an empty object, which means your application is going from rendered content to empty and then back again to the same rendered content. This is pretty wasteful and inefficient because we're throwing away the DOM we need to render something else and then replace it with the exact same DOM from before.

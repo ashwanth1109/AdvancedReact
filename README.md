@@ -1077,3 +1077,75 @@ Since we are interested in type checking the article prop here, we can use the `
 3. If you now render the application, with say a `date` field missing on one of the article objects in our data, then we get an error in the console from React. This bug would have not thrown an error if you didn't have type checking in place.
 
 4. This is the minimum type checking that you have to do in a React application. If you want to have more features in type checking, you can use FlowType, a static type checker for javascript from facebook. Note that flow is for all javascript and not just react components.
+
+### The Context API
+
+Side note: https://medium.com/dailyjs/reacts-%EF%B8%8F-new-context-api-70c9fe01596b
+New Context API apparently will replace the older version, but from what I see, I don't feel like the shift might be hard. So, I guess get familiar with this API first before moving??
+
+Between our App, Article and ArticleList component, we use prop-drilling to use the store in the Article component while ArticleList doesnt really need it. Sure, we can use redux to solve this, but you could also use the context API feature which is what redux, react-router etc. use anyway.
+
+To solve the previously mentioned problem, we need to make our store a global variable. The context API is React's solution for doing this. The React context API warns against using it (cuz global === bad, duh! LOL.)
+
+In our case, making store global is not a bad idea.
+
+1. Remove store being passed into ArticleList
+
+```js
+const ArticleList = ({ articles }) => {
+    return (
+        <div>
+            {Object.values(articles).map(article => (
+                <Article key={article.id} article={article} />
+            ))}
+        </div>
+    );
+};
+```
+
+2. This should break the application. In `App,js`, we need to define the context object. We do this using the `getChildContext()` method and whatever is being returned will be our context object. So, return the store. To make the context API work, we need to define the context type. We do that using the static property object called childContextTypes. We can use PropTypes library to do this,
+
+```js
+import PropTypes from "prop-types";
+
+class App extends Component {
+    static childContextTypes = {
+        store: PropTypes.object
+    };
+    getChildContext = () => {
+        return {
+            store: this.props.store
+        };
+    };
+    state = this.props.store.getState();
+
+    render() {
+        const { articles } = this.state;
+        return <ArticleList articles={articles} store={this.props.store} />;
+    }
+}
+```
+
+3. Now our store is part of the context API and is globally available to any component within the react application. For every component that needs to use this context, we need to define the contextTypes as we have done in the Article component below. Just by doing this, we are declaring that the Article component is allowed to use the context object. A functional component can access context by using its second argument which is for context after props.
+
+```js
+const Article = ({ article }, { store }) => {
+    // const Article = (props, context) => ...
+    const author = store.lookupAuthor(article.authorId);
+    return (
+        <div style={s.article}>
+            <div style={s.title}>{article.title}</div>
+            <div style={s.date}>{dateDisplay(article.date)}</div>
+            <div style={s.author}>
+                <a href={author.website}>
+                    {author.firstName} {author.lastName}
+                </a>
+            </div>
+            <div style={s.body}>{article.body}</div>
+        </div>
+    );
+};
+Article.contextTypes = {
+    store: PropTypes.object
+};
+```

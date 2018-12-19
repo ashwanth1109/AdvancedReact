@@ -870,3 +870,134 @@ ReactDOM.render(
     document.getElementById("root")
 );
 ```
+
+### Reading State from an external state manager
+
+Now, we will convert the DataApi class from our `state-api` package to be our external state manager.
+
+Side Note: Wow, this is very reminiscent of redux and yet we're not using the redux package. So I'm guessing this explains the origins of Redux maybe?
+
+So far, we have been using individual methods called `getArticles()` and `getAuthors()` in the state-api package to structure the app state. But theres a much better way of doing this. We just make the state-api package responsible for the whole state object and managing it, essentially making it our external state manager. Now, we can just read our state from the state-api package. (_ Yup, this is exactly like redux _).
+
+1. We want to get rid of our initial data object inside `server.js` in the renderers folder.
+
+```js
+const [articles, authors] = [api.getArticles(), api.getAuthors()];
+```
+
+2. Rename our DataApi into StateApi and api into store for consistency:
+
+```js
+import StateApi from "state-api";
+const serverRender = async () => {
+    const res = await axios.get(`http://${host}:${port}/data`);
+    const store = new StateApi(res.data);
+
+    return {
+        initialMarkup: ReactDOMServer.renderToString(<App store={store} />), // pass in our store instead of authors and articles
+        initialData: res.data // just pass in the raw data here so that we can create the store on the client side
+    };
+};
+```
+
+3. You have to make some changes on the client side (`dom.js`) as well. We have to take our passed in initialData and create store in a similar manner as we have done on the server side.
+
+```js
+import React from "react";
+import ReactDOM from "react-dom";
+
+import App from "../components/App";
+
+import StateApi from "state-api";
+const store = new StateApi(window.initialData);
+
+ReactDOM.render(<App store={store} />, document.getElementById("root"));
+```
+
+4. In our app component, instead of manually structuring the state of the application, we now read it from the store object which is being passed into the App as a prop. The store will have a `getState()` method for reading state. (LOL, call this mapStateToProps() and I think we have redux, haha. Im kidding, of course). Also, pass in the store into our ArticleList component, because we will be moving our `lookupAuthor()` function into StateApi class.
+
+```js
+class App extends Component {
+    state = this.props.store.getState();
+
+    // we will moving this into state-api, refer next section for details
+    // articleActions = {
+    //     lookupAuthor: authorId => this.state.authors[authorId]
+    // };
+
+    render() {
+        const { articles } = this.state;
+        return (
+            <ArticleList
+                articles={articles}
+                store={this.props.store}
+                // articleActions={this.articleActions}
+            />
+        );
+    }
+}
+```
+
+5. Next, we need to make changes to our DataApi class (in lib/index.js of state-api), which shall now be renamed to StateApi class. We also dont want to keep mapping raw data into objects on every `getState()` call, cuz its inefficient, duh! Instead we can just do it once, in the constructor. Since, we're doing this, we don't really need the `getArticles()` and the `getAuthors()` methods anymore. We expose all the data that we need using the `getState()` method. We can also move our actions like our `articleActions` object with `lookupAuthor()` function into our state manager. That way we dont have to pass things around.
+
+```js
+class StateApi {
+    constructor(rawData) {
+        this.data = {
+            articles: this.mapIntoObject(rawData.articles),
+            authors: this.mapIntoObject(rawData.authors)
+        };
+    }
+    mapIntoObject = arr => {
+        return arr.reduce((acc, curr) => {
+            acc[curr.id] = curr;
+            return acc;
+        }, {});
+    };
+    lookupAuthor = authorId => {
+        return this.data.authors[authorId];
+    };
+    getState = () => {
+        return this.data;
+    };
+}
+export default StateApi;
+```
+
+Your application should be working again at this point. Test to make sure there are no issues.
+
+6. Pass our store down from ArticleList to Article.
+
+```js
+const ArticleList = ({ articles, store }) => {
+    // receive store passed in
+    return (
+        <div>
+            {Object.values(articles).map(article => (
+                <Article key={article.id} article={article} store={store} /> // pass in store into Article component
+            ))}
+        </div>
+    );
+};
+```
+
+7. Use the `lookupAuthor()` function from the StateApi in our Article component.
+
+```js
+const Article = ({ article, store }) => {
+    // receive store passed in
+    const author = store.lookupAuthor(article.authorId); // lookupAuthor from store
+    return (
+        <div style={s.article}>
+            <div style={s.title}>{article.title}</div>
+            <div style={s.date}>{dateDisplay(article.date)}</div>
+            <div style={s.author}>
+                <a href={author.website}>
+                    {author.firstName} {author.lastName}
+                </a>
+            </div>
+            <div style={s.body}>{article.body}</div>
+        </div>
+    );
+};
+```

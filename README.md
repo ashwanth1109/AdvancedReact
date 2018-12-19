@@ -1149,3 +1149,5 @@ Article.contextTypes = {
     store: PropTypes.object
 };
 ```
+
+#### I guess its bye bye redux then? Hmmm. . .

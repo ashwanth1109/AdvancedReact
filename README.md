@@ -1218,7 +1218,7 @@ The Article Component now uses the context object to access the store. Introduci
 
 We can split the Article component into two - one component responsible for extracting the store out of the context API and another one repsonsible for rendering an article object. The component used for doing anything other than rendering UI is called a container component. Components used for rendering UI are called Presentational components.
 
-We split the Article component into Article and ArticleContainer. The ArticleContainer gets the props and store from context and it passes in the props as is, into the Article component, in addition to extracting what we need from the store and passing those in as props as well.
+We split the Article component into Article and ArticleContainer. The ArticleContainer gets the props and store from context and it passes in the props as is, into the Article component. In addition to that the container component passes in the store as a prop into the Article component.
 
 ```js
 const Article = ({ article, store }) => {

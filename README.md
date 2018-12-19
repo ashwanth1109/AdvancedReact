@@ -786,3 +786,87 @@ app.get("/", async (req, res) => {
 ```
 
 6. Now, the application should render the data after fetching from the server side. You should see it even with the `Disable javascript` option on chrome. Note that, if you do have javascript enabled then chrome throws an error. This is because, the initial state on the client side is still an empty object, which means your application is going from rendered content to empty and then back again to the same rendered content. This is pretty wasteful and inefficient because we're throwing away the DOM we need to render something else and then replace it with the exact same DOM from before.
+
+### Communicating the fetched data from the server side to client side
+
+1. Remove the componentDidMount() function from the client side where it fetches the data.
+
+```js
+async componentDidMount() {
+    const response = await axios.get('/data');
+    const api = new DataApi(response.data);
+    this.setState({
+        articles: api.getArticles(),
+        authors: api.getAuthors()
+    });
+}
+```
+
+2. Since we are passing in empty objects as initial data in the `dom.js` file, this causes React to throw away our server-rendered DOM. To stop this from happening, we need to pass in the actual data fetched from the server side. Now, we can do this fetching the data from a server call, but that requires an unnecessary network request.
+
+3. Instead, we have an easier way of doing this. First, from the `serverRender()` function, we return initialData along with the initialMarkup as follows:
+
+```js
+const serverRender = async () => {
+    const res = await axios.get(`http://${host}:${port}/data`);
+    const api = new DataApi(res.data);
+
+    const [articles, authors] = [api.getArticles(), api.getAuthors()];
+    return {
+        initialMarkup: ReactDOMServer.renderToString(
+            <App articles={articles} authors={authors} />
+        ),
+        initialData: {
+            articles: articles,
+            authors: authors
+        }
+    };
+};
+```
+
+4. On the server side, when we await the content from the `serverRender()` function, we are getting a different object structure now. To have access to both initialData and the initialMarkup in the `index.ejs` file, pass them in after being destructured from the await call. Note that the initialData needs to be passed in as a JSON string so that it can be attached to the window object of the DOM.
+
+```js
+//===========================================
+// create index route at /
+//===========================================
+app.get("/", async (req, res) => {
+    const { initialMarkup, initialData } = await serverRender();
+    res.render("index", {
+        initialMarkup: initialMarkup,
+        initialData: JSON.stringify(initialData)
+    });
+});
+```
+
+5. Modify index.ejs to use initialMarkup in place of initialContent. Also, add the script that attaches a JSON string version of the initialData to the window object as follows.
+
+```html
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Advanced React</title>
+        <script type="text/javascript">
+            window.initialData = <%- initialData -%>;
+        </script>
+    </head>
+    <body>
+        <div id="root"><%- initialMarkup -%></div>
+        <script src="bundle.js"></script>
+    </body>
+</html>
+```
+
+6. In the `dom.js` side, we need to get the articles and authors data from the initialData object stored in the window object of the DOM. Pass these in as the props while rendering the App component.
+
+```js
+const { articles, authors } = window.initialData;
+
+ReactDOM.render(
+    <App articles={articles} authors={authors} />,
+    document.getElementById("root")
+);
+```

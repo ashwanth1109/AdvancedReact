@@ -1151,3 +1151,59 @@ Article.contextTypes = {
 ```
 
 #### I guess its bye bye redux then? Hmmm. . .
+
+### Shallow Rendering with Enzyme
+
+Since we are now using the context api, it is causing our ArticleList test to fail. This is because the lookupAuthor method is no longer defined inside the Article component. We had earlier passed down the store to the Article from ArticleList component and now we are just reading it from the global context object.
+
+Therefore the context API has made testing a lot harder because the renderer in our snapshot tests is for a tree renderer. So, it will render the full tree from ArticleList to Article component.
+
+One way of solving this would be to fake the global context object so that the ArticleList component renders correctly (integration test approach).
+
+Integration testing approach is good for top level components, but for those lower, it is a better idea to follow a unit testing strategy. With this approach, we just want to test our ArticleList component and not the Article component. So, instead of tree rendering, we have to do shallow rendering. Shallow rendering will only render the ArticleList component without actually rendering Article. Just uses a stub to represent this.
+
+Although react-test-renderer can do shallow rendering, there is a much better option for this - Enzyme as its more syntax friendly. For example, it adopts syntax similar to jQuery for finding elements (YAY!!).
+
+1. Bring in enzyme with `yarn add --dev enzyme`
+
+2. Import shallow function from enzyme
+
+```js
+// import renderer from 'react-test-renderer'; // dont need this anymore
+import { shallow } from "enzyme";
+```
+
+3. Remove store from the test props.
+
+```js
+// store: {
+//     lookupAuthor: jest.fn(() => ({}));
+// }
+```
+
+4. Instead of rendering a tree, render a wrapper (a common term for shallow objects I guess?). Snapshot would need to be udpated (u) since we will not actually render the Article component. If your having a proptype error, just import Article component and fake the proptypes of the component.
+
+```js
+import Article from "../Article";
+
+describe("ArticleList", () => {
+    const testProps = {
+        articles: {
+            a: { id: "a" },
+            b: { id: "b" }
+        }
+    };
+
+    Article.propTypes = {};
+
+    it("renders correctly", () => {
+        const wrapper = shallow(<ArticleList {...testProps} />);
+        // console.log(wrapper);
+        expect(wrapper.find("Article").length).toBe(2);
+        //===========================================
+        // snapshot expectations
+        //===========================================
+        expect(wrapper).toMatchSnapshot();
+    });
+});
+```

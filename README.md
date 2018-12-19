@@ -1076,4 +1076,4 @@ Since we are interested in type checking the article prop here, we can use the `
 
 3. If you now render the application, with say a `date` field missing on one of the article objects in our data, then we get an error in the console from React. This bug would have not thrown an error if you didn't have type checking in place.
 
-4. This is the minimum type checking that you have to do in a React application. If you want to have more features in type checking, you can use FlowType, a static type checker for javascript from facebook.
+4. This is the minimum type checking that you have to do in a React application. If you want to have more features in type checking, you can use FlowType, a static type checker for javascript from facebook. Note that flow is for all javascript and not just react components.

@@ -1046,3 +1046,34 @@ describe("DataApi", () => {
     });
 });
 ```
+
+### Type Checking with Prop Types
+
+Typechecking helps you discover bugs a lot more easily as the app increases in complexity.
+For more info: https://reactjs.org/docs/typechecking-with-proptypes.html
+
+To get started, we use the prop-types package from React. We just have to import PropTypes and we define a PropTypes object with the property we need to define types for.
+
+1. In Article.js, import PropTypes. Bring in this dependency with `yarn add prop-types`. Run webpack again.
+
+```js
+import PropTypes from "prop-types";
+```
+
+2. To use PropTypes, after the definition of the Article component, create a proptypes object that has a property for every type that you need to define.
+
+```js
+Article.propTypes = {
+    article: PropTypes.shape({
+        title: PropTypes.string.isRequired,
+        date: PropTypes.string.isRequired,
+        body: PropTypes.string.isRequired
+    })
+};
+```
+
+Since we are interested in type checking the article prop here, we can use the `shape()` method which is a really good option for checking an object that we expect to have a certain shape.
+
+3. If you now render the application, with say a `date` field missing on one of the article objects in our data, then we get an error in the console from React. This bug would have not thrown an error if you didn't have type checking in place.
+
+4. This is the minimum type checking that you have to do in a React application. If you want to have more features in type checking, you can use FlowType, a static type checker for javascript from facebook.

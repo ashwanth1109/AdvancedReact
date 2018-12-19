@@ -1255,3 +1255,7 @@ ArticleContainer.contextTypes = {
 
 export default ArticleContainer;
 ```
+
+The sole purpose of the container is to work with the global context object while making it easy to unit test the components.
+
+We can replace such container components with a more generic variant to access the store for multiple components. To do this, we need a generic function that generates a container component responsible for extracting the store out of the context object. These functions are called higher order components.

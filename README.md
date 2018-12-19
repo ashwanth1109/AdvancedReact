@@ -1164,13 +1164,17 @@ Integration testing approach is good for top level components, but for those low
 
 Although react-test-renderer can do shallow rendering, there is a much better option for this - Enzyme as its more syntax friendly. For example, it adopts syntax similar to jQuery for finding elements (YAY!!).
 
-1. Bring in enzyme with `yarn add --dev enzyme`
+1. Bring in enzyme with `yarn add --dev enzyme`. Restart webpack.
 
-2. Import shallow function from enzyme
+2. Import shallow function from enzyme into `ArticleListTest.js`. Also need to configure Adapter to set it up. Check docs.
+
+Installation Docs: https://airbnb.io/enzyme/docs/installation/index.html
 
 ```js
 // import renderer from 'react-test-renderer'; // dont need this anymore
-import { shallow } from "enzyme";
+import { shallow, configure } from "enzyme";
+import Adapter from "enzyme-adapter-react-16";
+configure({ adapter: new Adapter() });
 ```
 
 3. Remove store from the test props.
